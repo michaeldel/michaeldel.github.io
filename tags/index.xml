@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Tags on Michaël&#39;s blog</title>
+    <link>https://michaeldel.github.io/tags/</link>
+    <description>Recent content in Tags on Michaël&#39;s blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Fri, 30 Nov 2018 00:18:00 +0000</lastBuildDate>
+    
+        <atom:link href="https://michaeldel.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Authentication</title>
+      <link>https://michaeldel.github.io/tags/authentication/</link>
+      <pubDate>Fri, 30 Nov 2018 00:18:00 +0000</pubDate>
+      
+      <guid>https://michaeldel.github.io/tags/authentication/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Back End</title>
+      <link>https://michaeldel.github.io/tags/back-end/</link>
+      <pubDate>Fri, 30 Nov 2018 00:18:00 +0000</pubDate>
+      
+      <guid>https://michaeldel.github.io/tags/back-end/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Django</title>
+      <link>https://michaeldel.github.io/tags/django/</link>
+      <pubDate>Fri, 30 Nov 2018 00:18:00 +0000</pubDate>
+      
+      <guid>https://michaeldel.github.io/tags/django/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Django Rest Framework</title>
+      <link>https://michaeldel.github.io/tags/django-rest-framework/</link>
+      <pubDate>Fri, 30 Nov 2018 00:18:00 +0000</pubDate>
+      
+      <guid>https://michaeldel.github.io/tags/django-rest-framework/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Oauth</title>
+      <link>https://michaeldel.github.io/tags/oauth/</link>
+      <pubDate>Fri, 30 Nov 2018 00:18:00 +0000</pubDate>
+      
+      <guid>https://michaeldel.github.io/tags/oauth/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Python</title>
+      <link>https://michaeldel.github.io/tags/python/</link>
+      <pubDate>Fri, 30 Nov 2018 00:18:00 +0000</pubDate>
+      
+      <guid>https://michaeldel.github.io/tags/python/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Social</title>
+      <link>https://michaeldel.github.io/tags/social/</link>
+      <pubDate>Fri, 30 Nov 2018 00:18:00 +0000</pubDate>
+      
+      <guid>https://michaeldel.github.io/tags/social/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Tutorial</title>
+      <link>https://michaeldel.github.io/tags/tutorial/</link>
+      <pubDate>Fri, 30 Nov 2018 00:18:00 +0000</pubDate>
+      
+      <guid>https://michaeldel.github.io/tags/tutorial/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Web</title>
+      <link>https://michaeldel.github.io/tags/web/</link>
+      <pubDate>Fri, 30 Nov 2018 00:18:00 +0000</pubDate>
+      
+      <guid>https://michaeldel.github.io/tags/web/</guid>
+      <description></description>
+    </item>
+    
+  </channel>
+</rss>

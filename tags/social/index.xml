@@ -1,0 +1,337 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Social on Michaël&#39;s blog</title>
+    <link>https://michaeldel.github.io/tags/social/</link>
+    <description>Recent content in Social on Michaël&#39;s blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Fri, 30 Nov 2018 00:18:00 +0000</lastBuildDate>
+    
+        <atom:link href="https://michaeldel.github.io/tags/social/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Django Rest Auth social authentication tutorial</title>
+      <link>https://michaeldel.github.io/posts/django-rest-auth-social-tutorial/</link>
+      <pubDate>Fri, 30 Nov 2018 00:18:00 +0000</pubDate>
+      
+      <guid>https://michaeldel.github.io/posts/django-rest-auth-social-tutorial/</guid>
+      <description>
+
+&lt;p&gt;Setting up social authentication for &lt;a href=&#34;http://www.django-rest-framework.org/&#34;&gt;&lt;em&gt;Django Rest Framework&lt;/em&gt;&lt;/a&gt; may be a pain, there also exists several third-party modules to achieve this, &lt;a href=&#34;https://github.com/Tivix/django-rest-auth&#34;&gt;&lt;em&gt;Django Rest Auth&lt;/em&gt;&lt;/a&gt; is our pick, being based on &lt;a href=&#34;https://github.com/pennersr/django-allauth&#34;&gt;&lt;em&gt;Django AllAuth&lt;/em&gt;&lt;/a&gt;, it takes care of most of the work by itself, and also allows for a &lt;a href=&#34;https://django-allauth.readthedocs.io/en/latest/providers.html&#34;&gt;very wide range of social authentication sources&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;However, making this whole machine work is not that trivial, especially because of the minimal &lt;a href=&#34;http://django-rest-auth.readthedocs.io/en/latest/index.html&#34;&gt;&lt;em&gt;Django Rest Auth&lt;/em&gt;&amp;rsquo;s documentation&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;In this post, we are going to build a minimal working example of &lt;em&gt;Django&lt;/em&gt; back-end application accepting &lt;a href=&#34;https://github.com/&#34;&gt;GitHub&lt;/a&gt; authentication.&lt;/p&gt;
+
+&lt;p&gt;In order not to lose anyone, we are going to start from the bare beginning of any usual Django project.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;tl;dr: the final example project is available from &lt;a href=&#34;https://github.com/michaeldel/django-rest-auth-social-example&#34;&gt;this repository&lt;/a&gt;.&lt;/em&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;creating-usual-django-with-rest-framework-project&#34;&gt;Creating usual &lt;em&gt;Django&lt;/em&gt; with &lt;em&gt;Rest Framework&lt;/em&gt; project&lt;/h2&gt;
+
+&lt;p&gt;You probably already have it installed but we first have to install &lt;em&gt;Django&lt;/em&gt; (you may want to setup a &lt;em&gt;virtual environment&lt;/em&gt; first):&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ pip install django
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Now create a new project through &lt;code&gt;django-admin&lt;/code&gt; and move into created directory:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ django-admin startproject app
+$ cd app
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;You should now get the following files structure:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ tree
+.
+├── app
+│   ├── __init__.py
+│   ├── settings.py
+│   ├── urls.py
+│   └── wsgi.py
+└── manage.py
+
+1 directory, 5 files
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Also add &lt;em&gt;Django Rest Framework&lt;/em&gt;, first installing it:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ pip install djangorestframework
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Then adding it to project&amp;rsquo;s apps, as well as its &lt;code&gt;authtoken&lt;/code&gt; app, in &lt;code&gt;app/settings.py&lt;/code&gt;:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;INSTALLED_APPS = [
+    &#39;django.contrib.admin&#39;,
+    &#39;django.contrib.auth&#39;,
+    &#39;django.contrib.contenttypes&#39;,
+    &#39;django.contrib.sessions&#39;,
+    &#39;django.contrib.messages&#39;,
+    &#39;django.contrib.staticfiles&#39;,
+
+    # add the following two apps
+    &#39;rest_framework&#39;,
+    &#39;rest_framework.authtoken&#39;
+]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;We are going to use &lt;a href=&#34;http://www.django-rest-framework.org/api-guide/authentication/#tokenauthentication&#34;&gt;token-based authentication&lt;/a&gt;, we hence have to specify it in our configuration file (still in &lt;code&gt;app/settings.py&lt;/code&gt;)&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;REST_FRAMEWORK = {
+    &#39;DEFAULT_AUTHENTICATION_CLASSES&#39;: (
+        &#39;rest_framework.authentication.TokenAuthentication&#39;,
+    )
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;installing-django-rest-auth&#34;&gt;Installing &lt;em&gt;Django Rest Auth&lt;/em&gt;&lt;/h2&gt;
+
+&lt;p&gt;For the first steps &lt;a href=&#34;http://django-rest-auth.readthedocs.io/en/latest/installation.html&#34;&gt;following the documentation&lt;/a&gt; is enough, so let&amp;rsquo;s do this.&lt;/p&gt;
+
+&lt;p&gt;Install &lt;em&gt;Django Rest Auth&lt;/em&gt;:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ pip install django-rest-auth[with_social]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Do not forget the social capabilities install option. Now add it to project apps:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;INSTALLED_APPS = [
+    ...,
+    &#39;rest_framework&#39;,
+    &#39;rest_framework.authtoken&#39;,
+    &#39;rest_auth&#39;  # here
+]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Let us now add &lt;em&gt;Django Rest Auth&lt;/em&gt; views to our project, in &lt;code&gt;app/urls.py&lt;/code&gt; (note that we are using &lt;a href=&#34;https://docs.djangoproject.com/en/2.0/releases/2.0/#simplified-url-routing-syntax&#34;&gt;&lt;em&gt;Django 2.0&lt;/em&gt; URLs routing syntax&lt;/a&gt;):&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;from django.contrib import admin
+from django.urls import include, path
+
+urlpatterns = [
+    path(&#39;admin/&#39;, admin.site.urls),
+    path(&#39;auth/&#39;, include(&#39;rest_auth.urls&#39;))  # here
+]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;We can now &lt;code&gt;migrate&lt;/code&gt; all our changes to database with the usual command:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ python manage.py migrate
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;That was the easy part, let&amp;rsquo;s now get into the hairy one.&lt;/p&gt;
+
+&lt;h2 id=&#34;social-authentication-configuration&#34;&gt;Social authentication configuration&lt;/h2&gt;
+
+&lt;p&gt;As before, we can start &lt;a href=&#34;http://django-rest-auth.readthedocs.io/en/latest/installation.html#social-authentication-optional&#34;&gt;following the documentation&lt;/a&gt;. Because &lt;em&gt;Django Rest Auth&lt;/em&gt; relies on &lt;em&gt;Django AllAuth&lt;/em&gt;, we have to add it to project apps as well. We also need &lt;code&gt;django.contrib.sites&lt;/code&gt; and &lt;code&gt;rest_auth.registration&lt;/code&gt; apps. We hence end up with this:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;INSTALLED_APPS = [
+    ...,
+    &#39;django.contrib.sites&#39;,
+
+    &#39;rest_framework&#39;,
+    &#39;rest_framework.authtoken&#39;,
+    &#39;rest_auth&#39;,
+    &#39;rest_auth.registration&#39;,
+    &#39;allauth&#39;,
+    &#39;allauth.account&#39;,
+    &#39;allauth.socialaccount&#39;,
+]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Because we are using &lt;code&gt;django.contrib.sites&lt;/code&gt;, we need to specify our site ID, once again in &lt;code&gt;app/settings.py&lt;/code&gt;:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;SITE_ID = 1
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Because we want to make it possible to login using GitHub, we have to add this app as well:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;INSTALLED_APPS = [
+    ...,
+    &#39;allauth.socialaccount.providers.github&#39;
+]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Adding these apps also implicitly added some models to the project, we thereforce have to migrate them to our database:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ python manage.py migrate
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;We are going to add a model instance to our database through admin interface (one can also do this programmatically though). So let&amp;rsquo;s add a &lt;em&gt;superuser&lt;/em&gt; and run our development server:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ python manage.py createsuperuser
+$ python manage.py runserver
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Now head to the admin interface of our local server (&lt;a href=&#34;http://localhost:8000/admin&#34;&gt;http://localhost:8000/admin&lt;/a&gt; by default) and login using the &lt;em&gt;superuser&lt;/em&gt; credentials you just entered.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;You may run into an HTTP 500 error with error code such as&lt;/em&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;django.contrib.sites.models.DoesNotExist: Site matching query does not exist.
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;em&gt;this is because you forgot to add the &lt;code&gt;SITE_ID&lt;/code&gt; config variable to &lt;code&gt;settings.py&lt;/code&gt; as specified in previous step, check it out)&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;Click &lt;em&gt;Social Applications&lt;/em&gt; then &lt;em&gt;Add Social Application&lt;/em&gt; (&lt;a href=&#34;http://localhost:8000/admin/socialaccount/socialapp/add/&#34;&gt;here&lt;/a&gt; by default).&lt;/p&gt;
+
+&lt;p&gt;We require GitHub application credentials, that you may add from this page &lt;a href=&#34;https://github.com/settings/applications/new&#34;&gt;https://github.com/settings/applications/new&lt;/a&gt;, here is what I used:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://michaeldel.github.io/media/django-rest-auth-social-tutorial/new_github_application.png&#34; alt=&#34;GitHub OAuth application creation&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;We can now fill our new &lt;em&gt;Social Application&lt;/em&gt;, do not forget to add the default website (&lt;code&gt;example.com&lt;/code&gt; in our case) to &lt;em&gt;Sites&lt;/em&gt; field:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://michaeldel.github.io/media/django-rest-auth-social-tutorial/add_social_auth_application.png&#34; alt=&#34;Social application creation&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Save this and let&amp;rsquo;s now go on adding views and urls.&lt;/p&gt;
+
+&lt;p&gt;Because we want to login with GitHub, we have to define a specific view for it. Let us add all these in &lt;code&gt;app/urls.py&lt;/code&gt; (do not do this in production, it is just of the sake of simplicity in that tutorial).&lt;/p&gt;
+
+&lt;p&gt;First define the GitHub login view, deriving from generic social login view:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;from allauth.socialaccount.providers.github import views as github_views
+from allauth.socialaccount.providers.oauth2.client import OAuth2Client
+from django.urls import reverse
+from rest_auth.registration.views import SocialLoginView
+
+
+class GitHubLogin(SocialLoginView):
+    adapter_class = github_views.GitHubOAuth2Adapter
+    client_class = OAuth2Client
+
+    @property
+    def callback_url(self):
+        # use the same callback url as defined in your GitHub app, this url
+        # must be absolute:
+        return self.request.build_absolute_uri(reverse(&#39;github_callback&#39;))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;And add that view to URL patterns:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;urlpatterns = [
+    ...,
+    path(&#39;auth/github/&#39;, GitHubLogin.as_view())
+]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;We have to fix that missing callback view. Because our app is a back-end API only, we want our callback view to redirect the user to front-end, including query parameters:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;import urllib.parse
+
+from django.shortcuts import redirect
+
+def github_callback(request):
+    params = urllib.parse.urlencode(request.GET)
+    return redirect(f&#39;https://frontend/auth/github?{params}&#39;)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;urlpatterns = [
+    ...,
+    path(&#39;auth/github/&#39;, github_callback, name=&#39;github_callback&#39;)
+]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;em&gt;(In reality front-end URL should probably be set in some sort of configuration, such as environment variable for instance)&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;We now need to retrieve the OAuth2 authorize URL, in our case it should look (almost) like this:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;https://github.com/login/oauth/authorize?&amp;amp;client_id=6d2098b0d015605ff492
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;We could of course generate this address on front-end, but it is a much better idea to retrieve it from back-end. Fortunately, such view already exists wihtin &lt;em&gt;Django AllAuth&lt;/em&gt; module:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;from allauth.socialaccount.providers.github import views as github_views
+
+urlpatterns = [
+    ...,
+    path(&#39;auth/github/url/&#39;, github_views.oauth2_login)
+]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This view will automatically redirect the user to authorize URL, with &lt;code&gt;reverse(&#39;github_callback&#39;)&lt;/code&gt; as callback (hence the &lt;code&gt;GitHubLogin&lt;/code&gt; URL name above), as you can see here (removed non-relevant output):&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ curl -I http://localhost:8000/auth/github/url/
+HTTP/1.1 302 Found
+Location: https://github.com/login/oauth/authorize?client_id=6d2098b0d015605ff492&amp;amp;redirect_uri=http%3A%2F%2Flocalhost%3A8000%2Fauth%2Fgithub%2Fcallback%2F&amp;amp;scope=&amp;amp;response_type=code&amp;amp;state=p00Sh6Yy11mW
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;And connecting to this url successfully displays this OAuth2 authorization page:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://michaeldel.github.io/media/django-rest-auth-social-tutorial/authorize.png&#34; alt=&#34;We finally got our damn authorization screen&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;After having clicked, we are successfully redirected to our (imaginary) front-end app:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;https://frontend/auth/github?code=b1e5c63da789d1382d32&amp;amp;state=p00Sh6Yy11mW
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;We can check that our new user actually got registered:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;&amp;gt;&amp;gt;&amp;gt; from django.contrib.auth.models import User
+&amp;gt;&amp;gt;&amp;gt; u = User.objects.last(); u
+&amp;lt;User: michaeldel&amp;gt;
+
+&amp;gt;&amp;gt;&amp;gt; from allauth.socialaccount.models import SocialAccount
+&amp;gt;&amp;gt;&amp;gt; sa = SocialAccount.objects.last(); sa
+&amp;lt;SocialAccount: michaeldel&amp;gt;
+
+&amp;gt;&amp;gt;&amp;gt; sa.get_provider().name
+&#39;GitHub&#39;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;It works, yay!&lt;/p&gt;
+
+&lt;h2 id=&#34;connecting&#34;&gt;Connecting&lt;/h2&gt;
+
+&lt;p&gt;We now have to retrieve the authentication token from front-end, and thanks to our redirection, we have everything we need in URL query params to request it:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ curl -X POST localhost:8000/auth/github/ -d code=b1e5c63da789d1382d32
+{&amp;quot;key&amp;quot;:&amp;quot;c73e3520d4a915bc700f875e9654db4542358df3&amp;quot;}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Here is our authentication token, we can use it to request, for instance, our user details, which are not accessible without being authenticated:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ curl localhost:8000/auth/user/
+{&amp;quot;detail&amp;quot;:&amp;quot;Authentication credentials were not provided.&amp;quot;}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Whereas we can successfully read them using that authentication token:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ curl localhost:8000/auth/user/ -H &amp;quot;Authorization: Token c73e3520d4a915bc700f875e9654db4542358df3&amp;quot;
+{&amp;quot;pk&amp;quot;:3,&amp;quot;username&amp;quot;:&amp;quot;michaeldel&amp;quot;,&amp;quot;email&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;first_name&amp;quot;:&amp;quot;&amp;quot;,&amp;quot;last_name&amp;quot;:&amp;quot;&amp;quot;}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;scope&#34;&gt;Scope&lt;/h2&gt;
+
+&lt;p&gt;Great, we finally managed to get authenticated through GitHub, however our created user seems to be lacking some data, like email for instance:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;&amp;gt;&amp;gt;&amp;gt; u.email
+&#39;&#39;
+
+&amp;gt;&amp;gt;&amp;gt; sa.extra_data[&#39;email&#39;] is None
+True
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This is because the &lt;a href=&#34;https://developer.github.com/apps/building-oauth-apps/understanding-scopes-for-oauth-apps/&#34;&gt;default GitHub OAuth2 scope&lt;/a&gt; only grants access to public information, which may of course not include email.&lt;/p&gt;
+
+&lt;p&gt;Fortunately, it is pretty easy to change that using &lt;em&gt;Django AllAuth&lt;/em&gt; settings, again in &lt;code&gt;app/settings.py&lt;/code&gt;, using the &lt;a href=&#34;https://developer.github.com/apps/building-oauth-apps/understanding-scopes-for-oauth-apps/#available-scopes&#34;&gt;GitHub&amp;rsquo;s OAuth2 scopes reference&lt;/a&gt;:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;SOCIALACCOUNT_PROVIDER = {
+    &#39;github&#39;: {
+        &#39;scope&#39;: (&#39;user:email&#39;,)
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Now the user email should properly set.&lt;/p&gt;
+
+&lt;h2 id=&#34;conclusion&#34;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;This was a brief introduction on how to use &lt;em&gt;Django REST Auth&lt;/em&gt; for social authentication. Some topics (such as state validation) were not covered here, I hence recommend you to check out &lt;a href=&#34;https://gist.github.com/dgilge/dbe9260208aadee535cef7c412a1162e&#34;&gt;this nice gist&lt;/a&gt; containing this additional information.&lt;/p&gt;
+
+&lt;p&gt;I also have created a small example repository for you to test this at the following URL: &lt;a href=&#34;https://github.com/michaeldel/django-rest-auth-social-example&#34;&gt;https://github.com/michaeldel/django-rest-auth-social-example&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>
